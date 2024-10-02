@@ -1,0 +1,114 @@
+import streamlit as st
+from cv_processor import CVProcessor
+from mistral_api import MistralAPI
+from jooble_api import JoobleAPI
+from config import load_config
+from utils import save_uploaded_file  # Ajouter cette ligne pour importer la fonction save_uploaded_file
+
+# Charger les configurations
+config = load_config()
+
+# Initialiser les objets
+cv_processor = CVProcessor()
+mistral_api = MistralAPI(config['MISTRAL_API_KEY'])
+jooble_api = JoobleAPI(config['JOOble_API_KEY'])
+
+# Fonction principale de l'application
+def main():
+    st.set_page_config(page_title="CV Improvement Chatbot", page_icon="🤖", layout="wide")
+
+    # CSS pour personnaliser l'apparence
+    st.markdown(
+        """
+        <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+        .sidebar .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .main .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .chat-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .chat-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .chat-button:hover {
+            background-color: #0056b3;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.title("CV Improvement Chatbot")
+
+    # Section de chat
+    st.sidebar.title("Chat")
+    chat_input = st.sidebar.text_input("Vous:", key="chat_input", placeholder="Tapez votre message ici...")
+    if st.sidebar.button("Envoyer", key="send_button"):
+        if chat_input:
+            st.sidebar.write(f"Vous: {chat_input}")
+            # Ajouter la logique de réponse du chatbot ici
+            response = f"Chatbot: Merci pour votre message: {chat_input}"
+            st.sidebar.write(response)
+
+    # Upload du CV
+    st.header("Upload your CV")
+    uploaded_file = st.file_uploader("Upload or drag and drop your CV (PDF or Image)", type=["pdf", "png", "jpg", "jpeg"])
+    job_type = st.text_input("Enter the job title:")
+    location = st.text_input("Enter the location:", "France")
+
+    if uploaded_file is not None and job_type and location:
+        # Sauvegarder le fichier temporairement
+        temp_file_path = save_uploaded_file(uploaded_file)
+
+        # Extraire le texte du CV
+        extracted_text = cv_processor.extract_text(temp_file_path)
+
+        if extracted_text:
+            # Obtenir les descriptions de postes
+            job_descriptions = jooble_api.get_job_descriptions(job_type, location)
+
+            if job_descriptions:
+                # Obtenir les recommandations pour améliorer le CV
+                recommendations = mistral_api.get_recommendations(extracted_text, job_descriptions)
+                st.subheader("CV Improvement Recommendations")
+                st.write(recommendations)
+
+                # Ajouter d'autres fonctionnalités
+                st.subheader("Other Functionalities")
+                if st.button("Get Interview Questions"):
+                    interview_questions = mistral_api.get_interview_questions(extracted_text, job_descriptions)
+                    st.write(interview_questions)
+
+                if st.button("Get Job Recommendations"):
+                    job_recommendations = mistral_api.get_job_recommendations(extracted_text, job_descriptions)
+                    st.write(job_recommendations)
+
+if __name__ == "__main__":
+    main()
