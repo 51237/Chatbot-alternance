@@ -27,6 +27,7 @@ class JoobleAPI:
             print(f"Request URL: {url}")
             print(f"Request Body: {body}")
             print(f"Response Status Code: {response.status_code}")
+            
 
             if response.status_code == 200:
                 job_descriptions = response.json().get('jobs', [])  # Renvoie une liste vide si 'jobs' n'est pas dans la réponse
