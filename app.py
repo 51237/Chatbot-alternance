@@ -60,6 +60,22 @@ def main():
         .chat-button:hover {
             background-color: #0056b3;
         }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f2f5;
+            color: #333;
+            border-radius: 0 0 10px 10px;
+        }
+        .footer a {
+            color: #333;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         """,
         unsafe_allow_html=True
