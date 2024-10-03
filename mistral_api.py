@@ -108,7 +108,7 @@ class MistralAPI:
             {json.dumps(job_descriptions, indent=2)}
 
             Please provide the following information in JSON format:
-            - Job recommendations based on the CV and job descriptions
+            - Job recommendations based on the CV and job descriptions:
             """
 
             data = {
@@ -132,3 +132,30 @@ class MistralAPI:
         end_time = time.time()
         print(f"Time taken to get job recommendations from Mistral: {end_time - start_time} seconds")
         return job_recommendations
+
+    def get_chatbot_response(self, user_message):
+        try:
+            headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+            }
+
+            data = {
+            "model": "mistral-tiny",
+            "messages": [{"role": "system", "content": "You are a helpful assistant."}]
+            }
+
+            data["messages"].extend(self.conversation_history)
+            data["messages"].append({"role": "user", "content": user_message})
+
+            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=data)
+
+            if response.status_code == 200:
+                bot_response = response.json()['choices'][0]['message']['content']
+                self.conversation_history.append({"role": "assistant", "content": bot_response})
+                return bot_response
+            else:
+                return "Désolé, je n'ai pas pu obtenir une réponse pour le moment."
+        except Exception as e:
+            print(f"Error getting chatbot response from Mistral: {e}")
+            return "Désolé, une erreur s'est produite."
