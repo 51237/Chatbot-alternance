@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-.gen_env
+gen_env
 
 # Distribution / packaging
 .Python
