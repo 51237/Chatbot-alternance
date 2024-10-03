@@ -3,7 +3,7 @@ from cv_processor import CVProcessor
 from mistral_api import MistralAPI
 from jooble_api import JoobleAPI
 from config import load_config
-from utils import save_uploaded_file  # Ajouter cette ligne pour importer la fonction save_uploaded_file
+from utils import save_uploaded_file
 
 # Charger les configurations
 config = load_config()
@@ -60,38 +60,35 @@ def main():
         .chat-button:hover {
             background-color: #0056b3;
         }
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #f0f2f5;
-            color: #333;
-            border-radius: 0 0 10px 10px;
-        }
-        .footer a {
-            color: #333;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    st.title("CV Improvement Chatbot")
-
-    # Section de chat
     st.sidebar.title("Chat")
+    
+    # Initialiser une clé dans session_state pour le premier message
+    if 'first_message' not in st.session_state:
+        st.session_state.first_message = True
+
     chat_input = st.sidebar.text_input("Vous:", key="chat_input", placeholder="Tapez votre message ici...")
+    
     if st.sidebar.button("Envoyer", key="send_button"):
         if chat_input:
-            st.sidebar.write(f"Vous: {chat_input}")
-            # Ajouter la logique de réponse du chatbot ici
-            response = f"Chatbot: Merci pour votre message: {chat_input}"
-            st.sidebar.write(response)
+            st.sidebar.markdown(f'<div class="user-message">Vous: {chat_input}</div>', unsafe_allow_html=True)
+            
+            # Appel à Mistral pour obtenir la réponse du chatbot
+            response = mistral_api.get_chatbot_response(chat_input)
+            
+            # Afficher la réponse du bot
+            st.sidebar.markdown(f'<div class="bot-message">Chatbot: {response}</div>', unsafe_allow_html=True)
+            
+            # Marquer que le premier message a été affiché
+            st.session_state.first_message = False
+
+    # Si c'est le premier chargement, ne pas afficher le message par défaut
+    # if st.session_state.first_message:
+    #     st.sidebar.markdown(f'<div class="bot-message">Chatbot: Bienvenue! Comment puis-je vous aider aujourd\'hui?</div>', unsafe_allow_html=True)
 
     # Upload du CV
     st.header("Upload your CV")
