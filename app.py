@@ -4,6 +4,7 @@ from mistral_api import MistralAPI
 from jooble_api import JoobleAPI
 from config import load_config
 from utils import save_uploaded_file
+import base64
 
 # Charger les configurations
 config = load_config()
@@ -11,31 +12,102 @@ config = load_config()
 # Initialiser les objets
 cv_processor = CVProcessor()
 mistral_api = MistralAPI(config['MISTRAL_API_KEY'])
-jooble_api = JoobleAPI(config['JOOble_API_KEY'])
+jooble_api = JoobleAPI(config['JOOBLE_API_KEY'])
+
+# Fonction pour charger le logo en base64
+def load_logo(logo_path):
+    with open(logo_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
 
 # Fonction principale de l'application
 def main():
     st.set_page_config(page_title="CV Improvement Chatbot", page_icon="🤖", layout="wide")
+    
+    # Chemin vers le logo
+    logo_path = "C:/Users/HP/Downloads/Chatbot-alternance/logo.svg"  
+    logo_data = load_logo(logo_path)
+    
+    # CSS pour animer le logo et le texte
+    st.markdown(
+        f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        .logo-container {{
+            display: flex;
+            align-items: center;
+        }}
+
+        .robot {{
+            animation: slideIn 1s forwards, bounce 2s infinite 1s; /* Animation de glissement suivie de rebond */
+        }}
+
+
+        @keyframes slideIn {{
+            from {{
+                transform: translateX(-100%); /* Commence en dehors de l'écran à gauche */
+                opacity: 0; /* Invisible au début */
+            }}
+            to {{
+                transform: translateX(0); /* Se déplace à sa position d'origine */
+                opacity: 1; /* Devenir visible */
+            }}
+        }}
+
+        @keyframes bounce {{
+            0%, 100% {{
+                transform: translateY(0);
+            }}
+            50% {{
+                transform: translateY(-10px);
+            }}
+        }}
+
+        .hello-text {{
+            font-size: 24px;
+            margin-left: 10px;
+            color: #6A5ACD; /* Couleur pour le texte */
+            font-family: 'Poppins', sans-serif; /* Police Poppins en gras */
+            animation: slideIn 1s, fadeIn 2s forwards, bounce 2s infinite 1s; /* Animation de rebond */
+        }}
+
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        </style>
+        <div class="logo-container">
+            <img class="robot" src="data:image/svg+xml;base64,{logo_data}" width="80" height="80"> <!-- Appliquer l'animation uniquement à l'image -->
+            <span class="hello-text">Hello!</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+
 
     # CSS pour personnaliser l'apparence
     st.markdown(
         """
-        <style>
+         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        
         body {
             background-color: #f4f4f9;
-            color: #333;
-            font-family: 'Arial', sans-serif;
+            color: #6A5ACD;
+            font-family: 'Poppins', sans-serif;
         }
         .sidebar .block-container {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            color: #7B68EE;
         }
         .main .block-container {
             padding-top: 2rem;
             padding-bottom: 2rem;
         }
         .chat-container {
-            background-color: #fff;
+            background-color: #7B68EE;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -43,22 +115,23 @@ def main():
         .chat-input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #483D8B;
             border-radius: 5px;
             margin-top: 10px;
         }
-        .chat-button {
-            width: 48%;
+       .stButton > button {
+            width: 100%;
             padding: 10px;
-            background-color: #007bff;
+            background-color: #9370DB;
             color: #fff;
             border: none;
             border-radius: 5px;
             margin-top: 10px;
             cursor: pointer;
         }
-        .chat-button:hover {
-            background-color: #0056b3;
+        .stButton > button:hover {
+            background-color: #483D8B;
+            color: #D8BFD8; 
         }
         .clear-button {
             width: 48%;
@@ -74,20 +147,25 @@ def main():
             background-color: #c82333;
         }
         .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 10px;
-            background-color: #f0f2f5;
+            background-color: #E6E6FA;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            left: 0;
             color: #333;
-            border-radius: 0 0 10px 10px;
+            border-radius: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center; /* Centrer le contenu */
         }
         .footer a {
             color: #333;
             text-decoration: none;
+            margin: 0 10px; /* Espacement entre les liens */
         }
         .footer a:hover {
             text-decoration: underline;
+            background-color: #fff;
         }
         /* Modal styles */
         .modal {
@@ -103,7 +181,7 @@ def main():
             background-color: rgba(0,0,0,0.4);
         }
         .modal-content {
-            background-color: #fefefe;
+            background-color: #E6E6FA;
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
@@ -287,8 +365,13 @@ def main():
                         job_recommendations = mistral_api.get_job_recommendations(extracted_text, job_descriptions)
                         st.write(job_recommendations)
 
-    # Footer
-    st.markdown("<div class='footer'><a href='#'>À propos</a><a href='#'>Conditions d'utilisation</a><a href='#'>Politique de confidentialité</a><span>Version 1.0</span></div>", unsafe_allow_html=True)
+   # Footer dans un conteneur
+    with st.container():
+        st.markdown(
+            "<div class='footer'><a href='#'>À propos</a><a href='#'>Conditions d'utilisation</a><a href='#'>Politique de confidentialité</a><span>Version 1.0</span></div>",
+            unsafe_allow_html=True,
+        )
+
 
 if __name__ == "__main__":
     main()
