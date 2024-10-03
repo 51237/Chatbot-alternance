@@ -60,6 +60,22 @@ def main():
         .chat-button:hover {
             background-color: #0056b3;
         }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f2f5;
+            color: #333;
+            border-radius: 0 0 10px 10px;
+        }
+        .footer a {
+            color: #333;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         </style>
         """,
         unsafe_allow_html=True
@@ -109,6 +125,9 @@ def main():
                 if st.button("Get Job Recommendations"):
                     job_recommendations = mistral_api.get_job_recommendations(extracted_text, job_descriptions)
                     st.write(job_recommendations)
+    
+    # Footer
+    st.markdown("<div class='footer'><a href='#'>À propos</a><a href='#'>Conditions d'utilisation</a><a href='#'>Politique de confidentialité</a><span>Version 1.0</span></div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

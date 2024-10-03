@@ -1,5 +1,5 @@
 streamlit
 python-dotenv
-azure-cognitiveservices-vision
+azure-cognitiveservices-vision-computervision
 PyPDF2
 requests
