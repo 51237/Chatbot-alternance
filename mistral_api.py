@@ -200,13 +200,13 @@ class MistralAPI:
     def get_cv_text_from_history(self):
         for message in reversed(self.conversation_history):
             if "cv text" in message["content"].lower():
-                return message["content"]
+                return message["content"].replace("cv text: ", "")
         return None
 
     def get_job_descriptions_from_history(self):
         for message in reversed(self.conversation_history):
             if "job descriptions" in message["content"].lower():
-                return message["content"]
+                return message["content"].replace("job descriptions: ", "")
         return None
 
 # Exemple d'utilisation
