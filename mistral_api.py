@@ -1,47 +1,48 @@
-import requests
-import json
+import os
 import time
+from mistralai import Mistral
 
 class MistralAPI:
     def __init__(self, api_key):
         self.api_key = api_key
+        self.client = Mistral(api_key=api_key)
         self.conversation_history = []
 
     def get_recommendations(self, cv_text, job_descriptions):
         start_time = time.time()
         try:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"
-            }
-
-            prompt = f"""Analyze the following CV text and job descriptions to provide recommendations for improving the CV:
+            prompt = f"""Analyze the following CV text and job descriptions to provide detailed recommendations in the language of the CV for for improving the CV:
 
             CV Text:
             {cv_text}
 
             Job Descriptions:
-            {json.dumps(job_descriptions, indent=2)}
+            {job_descriptions}
 
-            Please provide the following information in JSON format:
+            Please provide the following information in text format:
             - Recommendations for improving the CV based on the job descriptions
+            - Suggestions for enhancing the description of experiences
+            - Advice on highlighting relevant skills and competencies
+            - Tips for mentioning technical tools and software
+            - Recommendations for emphasizing language proficiency
+            - Suggestions for including relevant training and certifications
+            - General improvements to make the CV more professional and attractive to HR and recruitment bots
             """
 
-            data = {
-                "model": "mistral-tiny",
-                "messages": [{"role": "system", "content": "You are an assistant that provides recommendations for improving CVs based on job descriptions."}]
-            }
+            messages = [{"role": "system", "content": "You are an assistant that provides detailed recommendations for improving CVs based on job descriptions."}]
+            messages.extend(self.conversation_history)
+            messages.append({"role": "user", "content": prompt})
 
-            data["messages"].extend(self.conversation_history)
-            data["messages"].append({"role": "user", "content": prompt})
+            response = self.client.chat.stream(
+                model="mistral-large-latest",
+                messages=messages
+            )
 
-            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=data)
+            recommendations = ""
+            for chunk in response:
+                recommendations += chunk.data.choices[0].delta.content
 
-            if response.status_code == 200:
-                recommendations = response.json()['choices'][0]['message']['content']
-                self.conversation_history.append({"role": "assistant", "content": recommendations})
-            else:
-                recommendations = None
+            self.conversation_history.append({"role": "assistant", "content": recommendations})
         except Exception as e:
             print(f"Error getting recommendations from Mistral: {e}")
             recommendations = None
@@ -52,38 +53,42 @@ class MistralAPI:
     def get_interview_questions(self, cv_text, job_descriptions):
         start_time = time.time()
         try:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"
-            }
-
-            prompt = f"""Analyze the following CV text and job descriptions to provide potential interview questions:
+            prompt = f"""Analyze the following CV text and job descriptions to provide detailed and relevant interview questions in the language of the CV :
 
             CV Text:
             {cv_text}
 
             Job Descriptions:
-            {json.dumps(job_descriptions, indent=2)}
+            {job_descriptions}
 
-            Please provide the following information in JSON format:
+            Please provide the following information in text format:
             - Potential interview questions based on the job descriptions
+            - Questions related to the candidate's experiences and how they align with the job requirements
+            - Questions about the candidate's technical skills and competencies
+            - Questions about the candidate's use of technical tools and software
+            - Questions about the candidate's soft skills and interpersonal abilities
+            - Questions about the candidate's problem-solving and decision-making skills
+            - Questions about the candidate's language proficiency
+            - Questions about the candidate's training and certifications
+            - Questions that are commonly asked in highly competitive and selective interviews
+            - Questions that might be asked by an HR representative, a technical manager, and their supervisor
+            - General questions to assess the candidate's fit for the role and the company culture
             """
 
-            data = {
-                "model": "mistral-tiny",
-                "messages": [{"role": "system", "content": "You are an assistant that provides potential interview questions based on job descriptions."}]
-            }
+            messages = [{"role": "system", "content": "You are an assistant that provides detailed and relevant interview questions based on job descriptions."}]
+            messages.extend(self.conversation_history)
+            messages.append({"role": "user", "content": prompt})
 
-            data["messages"].extend(self.conversation_history)
-            data["messages"].append({"role": "user", "content": prompt})
+            response = self.client.chat.stream(
+                model="mistral-large-latest",
+                messages=messages
+            )
 
-            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=data)
+            interview_questions = ""
+            for chunk in response:
+                interview_questions += chunk.data.choices[0].delta.content
 
-            if response.status_code == 200:
-                interview_questions = response.json()['choices'][0]['message']['content']
-                self.conversation_history.append({"role": "assistant", "content": interview_questions})
-            else:
-                interview_questions = None
+            self.conversation_history.append({"role": "assistant", "content": interview_questions})
         except Exception as e:
             print(f"Error getting interview questions from Mistral: {e}")
             interview_questions = None
@@ -94,38 +99,41 @@ class MistralAPI:
     def get_job_recommendations(self, cv_text, job_descriptions):
         start_time = time.time()
         try:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"
-            }
-
-            prompt = f"""Analyze the following CV text and job descriptions to provide job recommendations:
+            prompt = f"""Analyze the following CV text and job descriptions to provide detailed and relevant job recommendations in the language of the CV:
 
             CV Text:
             {cv_text}
 
             Job Descriptions:
-            {json.dumps(job_descriptions, indent=2)}
+            {job_descriptions}
 
-            Please provide the following information in JSON format:
-            - Job recommendations based on the CV and job descriptions:
+            Please provide the following information in text format:
+            - Job recommendations based on the CV and job descriptions
+            - Suggestions for jobs that match the candidate's experiences
+            - Recommendations for jobs that align with the candidate's skills and competencies
+            - Suggestions for jobs that require the candidate's technical tools and software knowledge
+            - Recommendations for jobs that value the candidate's soft skills and interpersonal abilities
+            - Suggestions for jobs that recognize the candidate's problem-solving and decision-making skills
+            - Recommendations for jobs that value the candidate's language proficiency
+            - Suggestions for jobs that recognize the candidate's training and certifications
+            - General recommendations for jobs that are a good fit for the candidate's career path and aspirations
+            - Recommendations for jobs that the candidate might not have considered but are a good match based on their profile
             """
 
-            data = {
-                "model": "mistral-tiny",
-                "messages": [{"role": "system", "content": "You are an assistant that provides job recommendations based on CV and job descriptions."}]
-            }
+            messages = [{"role": "system", "content": "You are an assistant that provides detailed and relevant job recommendations based on CV and job descriptions."}]
+            messages.extend(self.conversation_history)
+            messages.append({"role": "user", "content": prompt})
 
-            data["messages"].extend(self.conversation_history)
-            data["messages"].append({"role": "user", "content": prompt})
+            response = self.client.chat.stream(
+                model="mistral-large-latest",
+                messages=messages
+            )
 
-            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=data)
+            job_recommendations = ""
+            for chunk in response:
+                job_recommendations += chunk.data.choices[0].delta.content
 
-            if response.status_code == 200:
-                job_recommendations = response.json()['choices'][0]['message']['content']
-                self.conversation_history.append({"role": "assistant", "content": job_recommendations})
-            else:
-                job_recommendations = None
+            self.conversation_history.append({"role": "assistant", "content": job_recommendations})
         except Exception as e:
             print(f"Error getting job recommendations from Mistral: {e}")
             job_recommendations = None
@@ -135,27 +143,87 @@ class MistralAPI:
 
     def get_chatbot_response(self, user_message):
         try:
-            headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-            }
+            if "simulate interview" in user_message.lower():
+                return self.simulate_interview()
 
-            data = {
-            "model": "mistral-tiny",
-            "messages": [{"role": "system", "content": "You are a helpful assistant."}]
-            }
+            prompt = f"""Please provide a detailed and helpful response to the following user message following the language of the CV :
 
-            data["messages"].extend(self.conversation_history)
-            data["messages"].append({"role": "user", "content": user_message})
+            User Message:
+            {user_message}
 
-            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=data)
+            Please consider the following aspects in your response:
+            - Provide clear and concise information
+            - Address the user's specific concerns or questions
+            - Offer practical advice or suggestions
+            - Use a professional and friendly tone
+            - Include relevant examples or explanations if necessary
+            - Ensure the response is comprehensive and covers all aspects of the user's query
+            """
 
-            if response.status_code == 200:
-                bot_response = response.json()['choices'][0]['message']['content']
-                self.conversation_history.append({"role": "assistant", "content": bot_response})
-                return bot_response
-            else:
-                return "Désolé, je n'ai pas pu obtenir une réponse pour le moment."
+            messages = [{"role": "system", "content": "You are a helpful and professional assistant."}]
+            messages.extend(self.conversation_history)
+            messages.append({"role": "user", "content": prompt})
+
+            response = self.client.chat.stream(
+                model="mistral-large-latest",
+                messages=messages
+            )
+
+            bot_response = ""
+            for chunk in response:
+                bot_response += chunk.data.choices[0].delta.content
+
+            self.conversation_history.append({"role": "assistant", "content": bot_response})
+            return bot_response
         except Exception as e:
             print(f"Error getting chatbot response from Mistral: {e}")
             return "Désolé, une erreur s'est produite."
+
+    def simulate_interview(self):
+        try:
+            cv_text = self.get_cv_text_from_history()
+            job_descriptions = self.get_job_descriptions_from_history()
+
+            if not cv_text or not job_descriptions:
+                return "Désolé, je n'ai pas suffisamment d'informations pour simuler un entretien. Veuillez fournir votre CV et les descriptions de poste."
+
+            interview_questions = self.get_interview_questions(cv_text, job_descriptions)
+            if interview_questions:
+                self.conversation_history.append({"role": "assistant", "content": interview_questions})
+                return interview_questions
+            else:
+                return "Désolé, je n'ai pas pu générer de questions d'entretien."
+        except Exception as e:
+            print(f"Error simulating interview: {e}")
+            return "Désolé, une erreur s'est produite."
+
+    def get_cv_text_from_history(self):
+        for message in reversed(self.conversation_history):
+            if "cv text" in message["content"].lower():
+                return message["content"]
+        return None
+
+    def get_job_descriptions_from_history(self):
+        for message in reversed(self.conversation_history):
+            if "job descriptions" in message["content"].lower():
+                return message["content"]
+        return None
+
+# Exemple d'utilisation
+if __name__ == "__main__":
+    api_key = os.environ["MISTRAL_API_KEY"]
+    mistral_api = MistralAPI(api_key)
+
+    cv_text = "Votre texte de CV ici"
+    job_descriptions = ["Description de poste 1", "Description de poste 2"]
+
+    recommendations = mistral_api.get_recommendations(cv_text, job_descriptions)
+    print("Recommendations:", recommendations)
+
+    user_message = "Bonjour, comment puis-je améliorer mon CV ?"
+    bot_response = mistral_api.get_chatbot_response(user_message)
+    print("Chatbot Response:", bot_response)
+
+    user_message = "Pouvez-vous simuler un entretien pour moi ?"
+    bot_response = mistral_api.get_chatbot_response(user_message)
+    print("Chatbot Response:", bot_response)

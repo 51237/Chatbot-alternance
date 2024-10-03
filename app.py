@@ -82,29 +82,48 @@ def main():
     )
 
     st.sidebar.title("Chat")
-    
+
     # Initialiser une clé dans session_state pour le premier message
     if 'first_message' not in st.session_state:
         st.session_state.first_message = True
 
+    # Initialiser l'historique des conversations
+    if 'conversation_history' not in st.session_state:
+        st.session_state.conversation_history = []
+
     chat_input = st.sidebar.text_input("Vous:", key="chat_input", placeholder="Tapez votre message ici...")
-    
+
     if st.sidebar.button("Envoyer", key="send_button"):
         if chat_input:
             st.sidebar.markdown(f'<div class="user-message">Vous: {chat_input}</div>', unsafe_allow_html=True)
-            
+
+            # Ajouter le message de l'utilisateur à l'historique des conversations
+            st.session_state.conversation_history.append({"role": "user", "content": chat_input})
+
             # Appel à Mistral pour obtenir la réponse du chatbot
             response = mistral_api.get_chatbot_response(chat_input)
-            
+
             # Afficher la réponse du bot
             st.sidebar.markdown(f'<div class="bot-message">Chatbot: {response}</div>', unsafe_allow_html=True)
-            
+
+            # Ajouter la réponse du bot à l'historique des conversations
+            st.session_state.conversation_history.append({"role": "assistant", "content": response})
+
             # Marquer que le premier message a été affiché
             st.session_state.first_message = False
 
-    # Si c'est le premier chargement, ne pas afficher le message par défaut
-    # if st.session_state.first_message:
-    #     st.sidebar.markdown(f'<div class="bot-message">Chatbot: Bienvenue! Comment puis-je vous aider aujourd\'hui?</div>', unsafe_allow_html=True)
+    # Afficher l'historique des conversations
+    for message in st.session_state.conversation_history:
+        if message["role"] == "user":
+            st.sidebar.markdown(f'<div class="user-message">Vous: {message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.sidebar.markdown(f'<div class="bot-message">Chatbot: {message["content"]}</div>', unsafe_allow_html=True)
+
+    # Bouton pour lancer la simulation d'entretien
+    if st.sidebar.button("Simuler un entretien"):
+        response = mistral_api.simulate_interview()
+        st.sidebar.markdown(f'<div class="bot-message">Chatbot: {response}</div>', unsafe_allow_html=True)
+        st.session_state.conversation_history.append({"role": "assistant", "content": response})
 
     # Upload du CV
     st.header("Upload your CV")
@@ -138,7 +157,7 @@ def main():
                 if st.button("Get Job Recommendations"):
                     job_recommendations = mistral_api.get_job_recommendations(extracted_text, job_descriptions)
                     st.write(job_recommendations)
-    
+
     # Footer
     st.markdown("<div class='footer'><a href='#'>À propos</a><a href='#'>Conditions d'utilisation</a><a href='#'>Politique de confidentialité</a><span>Version 1.0</span></div>", unsafe_allow_html=True)
 
