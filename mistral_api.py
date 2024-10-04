@@ -19,7 +19,7 @@ class MistralAPI:
             Job Descriptions:
             {job_descriptions}
 
-            Please provide the following information in text format:
+            Please provide the following information in text format, in language of the CV:
             - Recommendations for improving the CV based on the job descriptions
             - Suggestions for enhancing the description of experiences
             - Advice on highlighting relevant skills and competencies
@@ -61,7 +61,7 @@ class MistralAPI:
             Job Descriptions:
             {job_descriptions}
 
-            Please provide the following information in text format:
+            Please provide the following information in text format, in language of the CV:
             - Potential interview questions based on the job descriptions
             - Questions related to the candidate's experiences and how they align with the job requirements
             - Questions about the candidate's technical skills and competencies
@@ -107,7 +107,11 @@ class MistralAPI:
             Job Descriptions:
             {job_descriptions}
 
-            Please provide the following information in text format:
+            Please provide the following information in text format, in language of the CV:
+            - title: The job title
+            - reason: The reason for the recommendation
+            - link: The URL to apply for the job
+            - company: The company offering the job
             - Job recommendations based on the CV and job descriptions
             - Suggestions for jobs that match the candidate's experiences
             - Recommendations for jobs that align with the candidate's skills and competencies

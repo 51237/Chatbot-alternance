@@ -25,7 +25,7 @@ def main():
     st.set_page_config(page_title="CV Improvement Chatbot", page_icon="🤖", layout="wide")
     
     # Chemin vers le logo
-    logo_path = "C:/Users/HP/Downloads/Chatbot-alternance/logo.svg"  
+    logo_path = "logo.svg"  
     logo_data = load_logo(logo_path)
     
     # CSS pour animer le logo et le texte
